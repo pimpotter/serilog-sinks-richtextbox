@@ -19,8 +19,15 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls.Primitives;
+using System.Windows.Controls;
+using System.Windows.Threading;
 using Serilog;
+using Serilog.Core;
 using Serilog.Debugging;
+using Serilog.Sinks;
+using Serilog.Sinks.RichTextBox.Output;
+using Serilog.Sinks.RichTextBox;
 
 namespace WpfNet60Sample
 {
@@ -30,20 +37,22 @@ namespace WpfNet60Sample
     public partial class MainWindow : Window
     {
         private static readonly object _syncRoot = new object();
-
+        static LoggingLevelSwitch logSwitch = new();
+        static DeferredSink? deferredSink;
         public MainWindow()
         {
             InitializeComponent();
+            logSwitch.MinimumLevel = Serilog.Events.LogEventLevel.Information;
 
             SelfLog.Enable(message => Trace.WriteLine($"INTERNAL ERROR: {message}"));
 
-            const string outputTemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}";
-
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Verbose()
-                .WriteTo.RichTextBox(_richTextBox, outputTemplate: outputTemplate, syncRoot: _syncRoot)
+                .MinimumLevel.ControlledBy(logSwitch)
+                .WriteTo.Deffered(out deferredSink, outputTemplate: "{Level:u3}] {Message:lj}{NewLine}{Exception}")
                 .Enrich.WithThreadId()
                 .CreateLogger();
+
+
         }
 
         private void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
@@ -107,7 +116,10 @@ namespace WpfNet60Sample
         {
             Log.Fatal("Hello! Now => {Now}", DateTime.Now);
         }
-
+        private void Start_OnClick(object sender, RoutedEventArgs e)
+        {
+            deferredSink?.Attach(_richTextBox);
+        }
         private void LogParallelFor_OnClick(object sender, RoutedEventArgs e)
         {
             Parallel.For(1, 101, stepNumber =>

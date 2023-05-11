@@ -32,7 +32,7 @@ using Serilog.Sinks.RichTextBox.Abstraction;
 
 namespace Serilog.Sinks.RichTextBox
 {
-    internal sealed class RichTextBoxSink : ILogEventSink, IDisposable
+    public sealed class RichTextBoxSink : ILogEventSink, IDisposable
     {
         private readonly IRichTextBox _richTextBox;
         private readonly ITextFormatter _formatter;
@@ -46,7 +46,7 @@ namespace Serilog.Sinks.RichTextBox
         private Thread _consumerThread;
         private ConcurrentQueue<LogEvent> _messageQueue;
 
-        public RichTextBoxSink(IRichTextBox richTextBox, ITextFormatter formatter, DispatcherPriority dispatcherPriority, object syncRoot)
+        internal RichTextBoxSink(IRichTextBox richTextBox, ITextFormatter formatter, DispatcherPriority dispatcherPriority, object syncRoot)
         {
             _richTextBox = richTextBox ?? throw new ArgumentNullException(nameof(richTextBox));
             _formatter = formatter ?? throw new ArgumentNullException(nameof(formatter));

@@ -16,6 +16,10 @@
         <ToolBarTray DockPanel.Dock="Top">
             <ToolBar>
                 <Button
+                    Content="Start"
+                    Click="Start_OnClick" />
+                <Separator />
+                <Button
                     Content="Clear"
                     Click="Clear_OnClick" />
                 <Separator />

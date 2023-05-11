@@ -18,7 +18,7 @@ using System.Collections.Generic;
 
 namespace Serilog.Sinks.RichTextBox.Themes
 {
-    internal static class RichTextBoxConsoleThemes
+    public static class RichTextBoxConsoleThemes
     {
         public static RichTextBoxConsoleTheme Literate { get; } = new RichTextBoxConsoleTheme
         (

@@ -16,10 +16,12 @@
 
 using System;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Threading;
 using Serilog.Configuration;
 using Serilog.Core;
 using Serilog.Events;
+using Serilog.Sinks;
 using Serilog.Sinks.RichTextBox;
 using Serilog.Sinks.RichTextBox.Abstraction;
 using Serilog.Sinks.RichTextBox.Output;
@@ -145,6 +147,55 @@ namespace Serilog
 
             return sinkConfiguration.Sink(new RichTextBoxSink(richTextBox, formatter, dispatcherPriority, syncRoot),
                 restrictedToMinimumLevel, levelSwitch);
+        }
+
+        public static LoggerConfiguration Deffered(
+            this LoggerSinkConfiguration sinkConfiguration,
+            out DeferredSink deferredSink,
+            LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
+            string outputTemplate = _defaultRichTextBoxOutputTemplate,
+            IFormatProvider formatProvider = null,
+            LoggingLevelSwitch levelSwitch = null,
+            RichTextBoxTheme theme = null,
+            DispatcherPriority dispatcherPriority = DispatcherPriority.Background,
+            object syncRoot = null
+            )
+        {
+            if (sinkConfiguration is null)
+            {
+                throw new ArgumentNullException(nameof(sinkConfiguration));
+            }
+
+            if (outputTemplate is null)
+            {
+                throw new ArgumentNullException(nameof(outputTemplate));
+            }
+
+            var appliedTheme = theme ?? RichTextBoxConsoleThemes.Literate;
+            deferredSink = new DeferredSink(outputTemplate, formatProvider, appliedTheme, dispatcherPriority);
+
+            return sinkConfiguration.Sink(deferredSink, restrictedToMinimumLevel, levelSwitch);
+        }
+
+        public static RichTextBoxSink CreateRichTextBoxSync(
+            RichTextBox richTextBoxControl,
+            LoggingLevelSwitch levelSwitch = null,
+            LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
+            string outputTemplate = _defaultRichTextBoxOutputTemplate,
+            DispatcherPriority dispatcherPriority = DispatcherPriority.Background)
+        {
+            var appliedTheme = RichTextBoxConsoleThemes.Literate;
+
+            var syncRoot = _defaultSyncRoot;
+
+            var formatter = new XamlOutputTemplateRenderer(appliedTheme, outputTemplate, null);
+
+            var richTextBox = new RichTextBoxImpl(richTextBoxControl);
+
+            var richTextBoxSink = new RichTextBoxSink(richTextBox, formatter, dispatcherPriority, syncRoot);
+
+            return richTextBoxSink;
+
         }
     }
 }
